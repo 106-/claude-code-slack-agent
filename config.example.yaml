@@ -1,0 +1,30 @@
+# Slack Bot Configuration
+slack:
+  bot_token: "your_slack_bot_token_here"
+  app_token: "your_slack_app_token_here"
+  signing_secret: "your_slack_signing_secret_here"
+
+# Claude Code Configuration
+claude_code:
+  # api_key: "your_anthropic_api_key_here"
+  # api_url: "https://api.anthropic.com"
+
+# Bot Settings
+bot:
+  system_prompt: "You are a helpful agent in a Slack workspace."
+  max_turns: 2
+  # You can specify tools that the bot is allowed to use.
+  # allowed_tools:
+  #   - Bash(date)
+
+# Error Messages
+messages:
+  empty_message: "Please provide a message. What would you like to ask?"
+  general_error: "An error occurred. Please try again later."
+  empty_response: "No response received from Claude."
+  long_response_error: "The response is too long to display here. Please try a different query."
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

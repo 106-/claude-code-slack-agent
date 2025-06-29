@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  slack-bot:
+    image: ubiq/claude-code-slack-agent:latest
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    restart: unless-stopped
+    container_name: claude-slack-bot
+    networks:
+      - slack-bot-network
+
+networks:
+  slack-bot-network:
+    driver: bridge
