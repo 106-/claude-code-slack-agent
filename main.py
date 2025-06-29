@@ -31,15 +31,22 @@ class ClaudeSlackApp:
         self.config = config
         self.logger = logging.getLogger(__name__)
 
+        self.logger.info("Initializing ClaudeSlackApp...")
+
         # Initialize Claude Code SDK options
         bot_config = config.get("bot", {})
+
+        self.logger.info(f"Configurations: {bot_config}")
         self.claude_options = ClaudeCodeOptions(
             system_prompt=bot_config.get(
                 "system_prompt", "You are a helpful Slack bot."
             ),
             allowed_tools=bot_config.get("allowed_tools", []),
+            mcp_servers=bot_config.get("mcp_servers", []),
             max_turns=bot_config.get("max_turns", None),
         )
+
+        self.output_tool_use = bot_config.get("output_tool_use", False)
 
         # Initialize Slack Bolt app
         slack_config = config["slack"]
@@ -190,7 +197,9 @@ class ClaudeSlackApp:
                         for block in response.content:
                             if isinstance(block, TextBlock):
                                 responses.append(block.text)
-                            elif isinstance(block, ToolUseBlock):
+                            elif (
+                                isinstance(block, ToolUseBlock) and self.output_tool_use
+                            ):
                                 if block.name == "Bash":
                                     responses.append(f"*{block.name}*")
                                     responses.append(
