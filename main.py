@@ -102,7 +102,16 @@ class ClaudeSlackApp:
 
                 # Update the processing message with the actual response
                 client.chat_update(
-                    channel=event["channel"], ts=processing_ts, text=response_text
+                    channel=event["channel"], 
+                    ts=processing_ts, 
+                    text=response_text,  # Fallback text
+                    blocks=[{
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": response_text
+                        }
+                    }]
                 )
 
             except Exception as claude_error:
@@ -152,7 +161,16 @@ class ClaudeSlackApp:
 
                     # Update the processing message with the actual response
                     client.chat_update(
-                        channel=event["channel"], ts=processing_ts, text=response_text
+                        channel=event["channel"], 
+                        ts=processing_ts, 
+                        text=response_text,  # Fallback text
+                        blocks=[{
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": response_text
+                            }
+                        }]
                     )
 
                 except Exception as claude_error:
@@ -168,6 +186,44 @@ class ClaudeSlackApp:
             self.logger.error(f"Error in handle_message: {e}")
             self.logger.error(f"Traceback: {traceback.format_exc()}")
             say(self.config["messages"]["general_error"])
+
+    def _convert_to_slack_format(self, text):
+        """
+        Convert markdown and emoji syntax to Slack mrkdwn format.
+        
+        Args:
+            text (str): Text with markdown/emoji syntax
+            
+        Returns:
+            str: Text formatted for Slack mrkdwn
+        """
+        import re
+        
+        # Convert markdown bold (**text**) to Slack format (*text*)
+        text = re.sub(r'\*\*(.*?)\*\*', r'*\1*', text)
+        
+        # Convert common emoji codes to actual emoji
+        emoji_map = {
+            ':1st_place_medal:': '🥇',
+            ':2nd_place_medal:': '🥈', 
+            ':3rd_place_medal:': '🥉',
+            ':star:': '⭐',
+            ':star2:': '✨',
+            ':sparkles:': '✨',
+            ':trophy:': '🏆',
+            ':medal:': '🏅',
+            ':chart_with_upwards_trend:': '📈',
+            ':books:': '📚',
+            ':book:': '📖',
+            ':fire:': '🔥',
+            ':rocket:': '🚀',
+            ':tada:': '🎉'
+        }
+        
+        for code, emoji in emoji_map.items():
+            text = text.replace(code, emoji)
+            
+        return text
 
     def _process_with_claude(self, user_content):
         """
@@ -223,6 +279,10 @@ class ClaudeSlackApp:
 
             # Format response
             response_text = "\n".join(responses) if responses else ""
+            
+            # Convert to Slack format
+            if response_text:
+                response_text = self._convert_to_slack_format(response_text)
 
             if response_text and len(response_text) > 4000:
                 return self.config["messages"]["long_response_error"]
